@@ -18,11 +18,26 @@ msgstr ""
 "X-Crowdin-File: /main/internal/site/src/locales/en/en.po\n"
 "X-Crowdin-File-ID: 32\n"
 
+#. placeholder {0}: Object.keys(summaries).length
+#: src/components/systems-table/systems-table.tsx
+msgid "{0, plural, one {# GPU} other {# GPUs}}"
+msgstr ""
+
+#. placeholder {0}: newVersion.v
+#: src/components/footer-repo-link.tsx
+msgctxt "New version available"
+msgid "{0} available"
+msgstr ""
+
 #. placeholder {0}: table.getFilteredSelectedRowModel().rows.length
 #. placeholder {1}: table.getFilteredRowModel().rows.length
 #: src/components/routes/settings/alerts-history-data-table.tsx
 msgid "{0} of {1} row(s) selected."
 msgstr "{0} av {1} rad(er) valda."
+
+#: src/components/gpu-summary.tsx
+#~ msgid "{0} pids"
+#~ msgstr ""
 
 #: src/components/routes/system/info-bar.tsx
 msgid "{cores, plural, one {# core} other {# cores}}"
@@ -43,6 +58,15 @@ msgstr "{count, plural, one {{countString} minut} few {{countString} minuter} ma
 #: src/components/routes/system/info-bar.tsx
 msgid "{threads, plural, one {# thread} other {# threads}}"
 msgstr "{threads, plural, one {# tråd} other {# trådar}}"
+
+#: src/components/gpu-summary.tsx
+msgid "{totalGpuCount, plural, one {# GPU} other {# GPUs}}"
+msgstr ""
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "<1 minute"
+msgstr ""
 
 #: src/lib/utils.ts
 msgid "1 hour"
@@ -407,6 +431,11 @@ msgstr "Konflikter"
 msgid "Connection is down"
 msgstr "Ej ansluten"
 
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "Containers"
+msgstr ""
+
 #: src/components/routes/settings/alerts-history-data-table.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Continue"
@@ -553,6 +582,10 @@ msgstr "Beskrivning"
 #: src/components/containers-table/containers-table.tsx
 msgid "Detail"
 msgstr "Detalj"
+
+#: src/components/systems-table/systems-table.tsx
+msgid "Detailed GPU usage for systems with GPU data."
+msgstr ""
 
 #: src/components/routes/system/smart-table.tsx
 msgid "Device"
@@ -814,9 +847,24 @@ msgstr "Allmänt"
 msgid "Global"
 msgstr "Global"
 
+#: src/components/gpu-summary.tsx
+#: src/components/systems-table/systems-table-columns.tsx
+#: src/components/systems-table/systems-table.tsx
+msgid "GPU"
+msgstr ""
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "GPU {id}"
+msgstr ""
+
 #: src/components/routes/system.tsx
 msgid "GPU Engines"
 msgstr "GPU-motorer"
+
+#: src/components/systems-table/systems-table.tsx
+msgid "GPU Overview"
+msgstr ""
 
 #: src/components/routes/system.tsx
 msgid "GPU Power Draw"
@@ -1047,6 +1095,10 @@ msgstr "Nätverksenhet"
 msgid "No"
 msgstr "Nej"
 
+#: src/components/gpu-summary.tsx
+msgid "No containers using this GPU"
+msgstr ""
+
 #: src/components/command-palette.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "No results found."
@@ -1219,6 +1271,11 @@ msgstr "Vänligen logga in på ditt konto"
 #: src/components/add-system.tsx
 msgid "Port"
 msgstr "Port"
+
+#: src/components/containers-table/containers-table-columns.tsx
+msgctxt "Container ports"
+msgid "Ports"
+msgstr ""
 
 #. Power On Time
 #: src/components/routes/system/smart-table.tsx
@@ -1752,6 +1809,14 @@ msgstr "Använt"
 msgid "Users"
 msgstr "Användare"
 
+#: src/components/gpu-summary.tsx
+msgid "Util"
+msgstr ""
+
+#: src/components/gpu-summary.tsx
+msgid "Utilization"
+msgstr ""
+
 #: src/components/alerts-history-columns.tsx
 msgid "Value"
 msgstr "Värde"
@@ -1772,6 +1837,11 @@ msgstr "Visa dina 200 senaste larm."
 #: src/components/systems-table/systems-table.tsx
 msgid "Visible Fields"
 msgstr "Synliga fält"
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "VRAM"
+msgstr ""
 
 #: src/components/routes/system.tsx
 msgid "Waiting for enough records to display"

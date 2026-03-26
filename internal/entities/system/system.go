@@ -77,6 +77,15 @@ type GPUData struct {
 	Count       float64            `json:"-"`
 	Engines     map[string]float64 `json:"e,omitempty" cbor:"5,keyasint,omitempty"`
 	PowerPkg    float64            `json:"pp,omitempty" cbor:"6,keyasint,omitempty"`
+	Consumers   []GPUConsumer      `json:"c,omitempty" cbor:"7,keyasint,omitempty"`
+}
+
+type GPUConsumer struct {
+	ID            string  `json:"i" cbor:"0,keyasint"`
+	Name          string  `json:"n" cbor:"1,keyasint"`
+	MemoryUsed    float64 `json:"mu,omitempty,omitzero" cbor:"2,keyasint,omitempty,omitzero"`
+	ProcessCount  uint8   `json:"pc,omitempty,omitzero" cbor:"3,keyasint,omitempty,omitzero"`
+	RuntimeSeconds uint64 `json:"rt,omitempty,omitzero" cbor:"4,keyasint,omitempty,omitzero"`
 }
 
 type FsStats struct {
@@ -151,6 +160,7 @@ type Info struct {
 	ExtraFsPct     map[string]float64 `json:"efs,omitempty" cbor:"21,keyasint,omitempty"`
 	Services       []uint16           `json:"sv,omitempty" cbor:"22,keyasint,omitempty"` // [totalServices, numFailedServices]
 	Battery        [2]uint8           `json:"bat,omitzero" cbor:"23,keyasint,omitzero"`  // [percent, charge state]
+	GPUSummaries   map[string]GPUData `json:"gs,omitempty" cbor:"24,keyasint,omitempty"`
 }
 
 // Data that does not change during process lifetime and is not needed in All Systems table

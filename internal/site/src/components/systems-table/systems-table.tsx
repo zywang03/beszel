@@ -1,4 +1,4 @@
-import { Trans, useLingui } from "@lingui/react/macro"
+import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useStore } from "@nanostores/react"
 import { getPagePath } from "@nanostores/router"
 import {
@@ -14,7 +14,7 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table"
-import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual"
+import { useVirtualizer } from "@tanstack/react-virtual"
 import {
 	ArrowDownIcon,
 	ArrowUpDownIcon,
@@ -26,8 +26,9 @@ import {
 	Settings2Icon,
 	XIcon,
 } from "lucide-react"
-import { memo, useEffect, useMemo, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { GpuSummaryList } from "@/components/gpu-summary"
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -54,6 +55,21 @@ type ViewMode = "table" | "grid"
 type StatusFilter = "all" | SystemRecord["status"]
 
 const preloadSystemDetail = runOnce(() => import("@/components/routes/system.tsx"))
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
+	cpu: false,
+	loadAverage: false,
+	temp: false,
+	battery: false,
+	services: false,
+	uptime: false,
+}
+
+function mergeDefaultColumnVisibility(value: VisibilityState): VisibilityState {
+	return {
+		...DEFAULT_COLUMN_VISIBILITY,
+		...value,
+	}
+}
 
 export default function SystemsTable() {
 	const data = useStore($systems)
@@ -69,7 +85,25 @@ export default function SystemsTable() {
 		sessionStorage
 	)
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [columnVisibility, setColumnVisibility] = useBrowserStorage<VisibilityState>("cols", {})
+	const [columnVisibility, setColumnVisibility] = useBrowserStorage<VisibilityState>(
+		"cols",
+		DEFAULT_COLUMN_VISIBILITY
+	)
+
+	useEffect(() => {
+		setColumnVisibility((prev) => {
+			const merged = mergeDefaultColumnVisibility(prev)
+			const prevKeys = Object.keys(prev)
+			const mergedKeys = Object.keys(merged)
+			if (
+				prevKeys.length === mergedKeys.length &&
+				mergedKeys.every((key) => prev[key] === merged[key])
+			) {
+				return prev
+			}
+			return merged
+		})
+	}, [setColumnVisibility])
 
 	const locale = i18n.locale
 
@@ -89,8 +123,7 @@ export default function SystemsTable() {
 
 	const [viewMode, setViewMode] = useBrowserStorage<ViewMode>(
 		"viewMode",
-		// show grid view on mobile if there are less than 200 systems (looks better but table is more efficient)
-		window.innerWidth < 1024 && filteredData.length < 200 ? "grid" : "table"
+		"grid"
 	)
 
 	useEffect(() => {
@@ -119,14 +152,21 @@ export default function SystemsTable() {
 			invertSorting: true,
 			sortUndefined: "last",
 			minSize: 0,
-			size: 900,
-			maxSize: 900,
 		},
 	})
 
 	const rows = table.getRowModel().rows
 	const columns = table.getAllColumns()
 	const visibleColumns = table.getVisibleLeafColumns()
+	const visibleColumnSignature = useMemo(() => {
+		return visibleColumns.map((column) => `${column.id}:${column.getIsVisible() ? 1 : 0}`).join("|")
+	}, [visibleColumns])
+	const gpuRows = useMemo(() => {
+		return rows.filter((row) => {
+			const summaries = row.original.info.gs
+			return summaries && Object.keys(summaries).length > 0
+		})
+	}, [rows])
 
 	const [upSystemsLength, downSystemsLength, pausedSystemsLength] = useMemo(() => {
 		return [Object.values(upSystems).length, Object.values(downSystems).length, Object.values(pausedSystems).length]
@@ -290,7 +330,7 @@ export default function SystemsTable() {
 			</CardHeader>
 		)
 	}, [
-		visibleColumns.length,
+		visibleColumnSignature,
 		sorting,
 		viewMode,
 		locale,
@@ -302,43 +342,69 @@ export default function SystemsTable() {
 	])
 
 	return (
-		<Card>
-			{CardHead}
-			<div className="p-6 pt-0 max-sm:py-3 max-sm:px-2">
-				{viewMode === "table" ? (
-					// table layout
-					<div className="rounded-md">
-						<AllSystemsTable table={table} rows={rows} colLength={visibleColumns.length} />
-					</div>
-				) : (
-					// grid layout
-					<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-						{rows?.length ? (
-							rows.map((row) => {
-								return <SystemCard key={row.original.id} row={row} table={table} colLength={visibleColumns.length} />
-							})
-						) : (
-							<div className="col-span-full text-center py-8">
-								<Trans>No systems found.</Trans>
-							</div>
-						)}
-					</div>
-				)}
-			</div>
-		</Card>
+		<div className="grid w-full min-w-0 max-w-full gap-4">
+			<Card className="w-full min-w-0 max-w-full">
+				{CardHead}
+				<div className="p-6 pt-0 max-sm:py-3 max-sm:px-2">
+					{viewMode === "table" ? (
+						<div className="rounded-md">
+							<AllSystemsTable
+								table={table}
+								rows={rows}
+								colLength={visibleColumns.length}
+								visibleColumnSignature={visibleColumnSignature}
+							/>
+						</div>
+					) : (
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+							{rows?.length ? (
+								rows.map((row) => {
+									return (
+										<SystemCard
+											key={row.original.id}
+											row={row}
+											table={table}
+											colLength={visibleColumns.length}
+											visibleColumnSignature={visibleColumnSignature}
+										/>
+									)
+								})
+							) : (
+								<div className="col-span-full text-center py-8">
+									<Trans>No systems found.</Trans>
+								</div>
+							)}
+						</div>
+					)}
+				</div>
+			</Card>
+			{viewMode === "table" && gpuRows.length > 0 && <SystemsGpuPanel rows={gpuRows} />}
+		</div>
 	)
 }
 
 const AllSystemsTable = memo(
-	({ table, rows, colLength }: { table: TableType<SystemRecord>; rows: Row<SystemRecord>[]; colLength: number }) => {
+	({
+		table,
+		rows,
+		colLength,
+		visibleColumnSignature,
+	}: {
+		table: TableType<SystemRecord>
+		rows: Row<SystemRecord>[]
+		colLength: number
+		visibleColumnSignature: string
+	}) => {
 		// The virtualizer will need a reference to the scrollable container element
 		const scrollRef = useRef<HTMLDivElement>(null)
 
 		const virtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
 			count: rows.length,
-			estimateSize: () => (rows.length > 10 ? 56 : 60),
+			estimateSize: () => 60,
+			getItemKey: (index) => rows[index]?.id ?? index,
 			getScrollElement: () => scrollRef.current,
 			overscan: 5,
+			measureElement: (element) => element?.getBoundingClientRect().height ?? 60,
 		})
 		const virtualRows = virtualizer.getVirtualItems()
 
@@ -354,41 +420,48 @@ const AllSystemsTable = memo(
 				)}
 				ref={scrollRef}
 			>
-				{/* add header height to table size */}
-				<div style={{ height: `${virtualizer.getTotalSize() + 50}px`, paddingTop, paddingBottom }}>
-					<table className="text-sm w-full h-full">
-						<SystemsTableHead table={table} />
-						<TableBody onMouseEnter={preloadSystemDetail}>
-							{rows.length ? (
-								virtualRows.map((virtualRow) => {
+				<table className="w-full table-auto text-sm">
+					<SystemsTableHead table={table} />
+					<TableBody onMouseEnter={preloadSystemDetail}>
+						{rows.length ? (
+							<>
+								{paddingTop > 0 && (
+									<TableRow className="border-0 hover:bg-transparent">
+										<TableCell colSpan={colLength} className="h-0 p-0" style={{ height: paddingTop }} />
+									</TableRow>
+								)}
+								{virtualRows.map((virtualRow) => {
 									const row = rows[virtualRow.index] as Row<SystemRecord>
 									return (
 										<SystemTableRow
 											key={row.id}
 											row={row}
-											virtualRow={virtualRow}
-											length={rows.length}
-											colLength={colLength}
+											measureElement={virtualizer.measureElement}
+											visibleColumnSignature={visibleColumnSignature}
 										/>
 									)
-								})
-							) : (
-								<TableRow>
-									<TableCell colSpan={colLength} className="h-37 text-center pointer-events-none">
-										<Trans>No systems found.</Trans>
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</table>
-				</div>
+								})}
+								{paddingBottom > 0 && (
+									<TableRow className="border-0 hover:bg-transparent">
+										<TableCell colSpan={colLength} className="h-0 p-0" style={{ height: paddingBottom }} />
+									</TableRow>
+								)}
+							</>
+						) : (
+							<TableRow>
+								<TableCell colSpan={colLength} className="h-37 text-center pointer-events-none">
+									<Trans>No systems found.</Trans>
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</table>
 			</div>
 		)
 	}
 )
 
 function SystemsTableHead({ table }: { table: TableType<SystemRecord> }) {
-	const { t } = useLingui()
 	return (
 		<TableHeader className="sticky top-0 z-50 w-full border-b-2">
 			<div className="absolute -top-2 left-0 w-full h-4 bg-table-header z-50"></div>
@@ -410,54 +483,116 @@ function SystemsTableHead({ table }: { table: TableType<SystemRecord> }) {
 const SystemTableRow = memo(
 	({
 		row,
-		virtualRow,
-		colLength,
+		measureElement,
+		visibleColumnSignature,
 	}: {
 		row: Row<SystemRecord>
-		virtualRow: VirtualItem
-		length: number
-		colLength: number
+		measureElement: (node: HTMLTableRowElement | null) => void
+		visibleColumnSignature: string
 	}) => {
 		const system = row.original
-		const { t } = useLingui()
-		return useMemo(() => {
-			return (
-				<TableRow
-					// data-state={row.getIsSelected() && "selected"}
-					className={cn("cursor-pointer transition-opacity relative safari:transform-3d", {
-						"opacity-50": system.status === SystemStatus.Paused,
-					})}
-				>
-					{row.getVisibleCells().map((cell) => (
-						<TableCell
-							key={cell.id}
-							style={{
-								width: cell.column.getSize(),
-								height: virtualRow.size,
-							}}
-							className="py-0 ps-4.5"
-						>
-							{flexRender(cell.column.columnDef.cell, cell.getContext())}
-						</TableCell>
-					))}
-				</TableRow>
-			)
-		}, [system, system.status, colLength, t])
+		const setMainRowRef = useCallback(
+			(node: HTMLTableRowElement | null) => {
+				measureElement(node)
+			},
+			[measureElement]
+		)
+
+		return (
+			<TableRow
+				ref={setMainRowRef}
+				// data-state={row.getIsSelected() && "selected"}
+				className={cn("cursor-pointer transition-opacity relative safari:transform-3d", {
+					"opacity-50": system.status === SystemStatus.Paused,
+				})}
+			>
+				{row.getVisibleCells().map((cell) => (
+					<TableCell key={cell.id} className="py-3 ps-4.5 align-middle">
+						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+					</TableCell>
+				))}
+			</TableRow>
+		)
 	}
 )
 
+const SystemsGpuPanel = memo(({ rows }: { rows: Row<SystemRecord>[] }) => {
+	return (
+		<Card className="w-full min-w-0 max-w-full overflow-hidden">
+			<CardHeader className="pb-4.5 px-2 sm:px-6 max-sm:pt-5 max-sm:pb-1">
+				<div className="px-2 sm:px-1">
+					<CardTitle className="mb-2">
+						<Trans>GPU Overview</Trans>
+					</CardTitle>
+					<CardDescription className="flex">
+						<Trans>Detailed GPU usage for systems with GPU data.</Trans>
+					</CardDescription>
+				</div>
+			</CardHeader>
+			<CardContent className="grid gap-4 px-2 pb-3 sm:px-6 sm:pb-6">
+				<div className="grid min-w-0 gap-4 grid-cols-1">
+					{rows.map((row) => {
+						const system = row.original
+						const summaries = system.info.gs
+						if (!summaries || Object.keys(summaries).length === 0) {
+							return null
+						}
+
+						return (
+							<div
+								key={system.id}
+								className={cn("w-full min-w-0 max-w-full overflow-hidden rounded-md border border-border/70 bg-muted/10 p-4", {
+									"opacity-50": system.status === SystemStatus.Paused,
+								})}
+							>
+								<div className="mb-3 flex items-center justify-between gap-3">
+									<Link
+										href={getPagePath($router, "system", { id: system.id })}
+										className="relative z-10 flex min-w-0 items-center gap-2 font-medium"
+									>
+										<IndicatorDot system={system} />
+										<span className="truncate">{system.name}</span>
+									</Link>
+									<div className="shrink-0 text-xs tabular-nums text-muted-foreground">
+										<Plural value={Object.keys(summaries).length} one="# GPU" other="# GPUs" />
+									</div>
+								</div>
+								<GpuSummaryList gpus={summaries} status={system.status} className="min-w-0" />
+							</div>
+						)
+					})}
+				</div>
+			</CardContent>
+		</Card>
+	)
+})
+
 const SystemCard = memo(
-	({ row, table, colLength }: { row: Row<SystemRecord>; table: TableType<SystemRecord>; colLength: number }) => {
+	({
+		row,
+		table,
+		colLength,
+		visibleColumnSignature,
+	}: {
+		row: Row<SystemRecord>
+		table: TableType<SystemRecord>
+		colLength: number
+		visibleColumnSignature: string
+	}) => {
 		const system = row.original
 		const { t } = useLingui()
 
 		return useMemo(() => {
+			const gpuColumn = table.getColumn("gpu")
+			const showGpu = gpuColumn?.getIsVisible() ?? false
+			const gpuCell = row.getAllCells().find((cell) => cell.column.id === "gpu")
+
 			return (
 				<Card
 					onMouseEnter={preloadSystemDetail}
 					key={system.id}
 					className={cn(
-						"cursor-pointer hover:shadow-md transition-all bg-transparent w-full dark:border-border duration-200 relative",
+						"cursor-pointer hover:shadow-md transition-all bg-transparent w-full min-w-0 overflow-hidden dark:border-border duration-200 relative",
 						{
 							"opacity-50": system.status === SystemStatus.Paused,
 						}
@@ -482,7 +617,9 @@ const SystemCard = memo(
 					<CardContent className="text-sm px-5 pt-3.5 pb-4">
 						<div className="grid gap-2.5" style={{ gridTemplateColumns: "24px minmax(80px, max-content) 1fr" }}>
 							{table.getAllColumns().map((column) => {
-								if (!column.getIsVisible() || column.id === "system" || column.id === "actions") return null
+								if (!column.getIsVisible() || column.id === "system" || column.id === "actions" || column.id === "gpu") {
+									return null
+								}
 								const cell = row.getAllCells().find((cell) => cell.column.id === column.id)
 								if (!cell) return null
 								// @ts-expect-error
@@ -506,6 +643,20 @@ const SystemCard = memo(
 								)
 							})}
 						</div>
+						{showGpu && gpuCell && (
+							<div className="relative z-10 mt-4 min-w-0 overflow-hidden border-t border-border/60 pt-4 cursor-auto">
+								<div className="flex items-center gap-2 text-muted-foreground mb-2">
+									{/* @ts-expect-error */}
+									{gpuColumn.columnDef.Icon && <gpuColumn.columnDef.Icon className="size-4" />}
+									<span className="text-sm font-medium">
+										<Trans>GPU</Trans>
+									</span>
+								</div>
+								<div className="w-full min-w-0 overflow-hidden">
+									{flexRender(gpuCell.column.columnDef.cell, gpuCell.getContext())}
+								</div>
+							</div>
+						)}
 					</CardContent>
 					<Link
 						href={getPagePath($router, "system", { id: row.original.id })}
@@ -515,6 +666,6 @@ const SystemCard = memo(
 					</Link>
 				</Card>
 			)
-		}, [system, colLength, t])
+		}, [system, colLength, t, visibleColumnSignature])
 	}
 )

@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -79,6 +80,16 @@ type dockerManager struct {
 	networkRecvTrackers map[uint16]*deltatracker.DeltaTracker[string, uint64]
 	lastNetworkReadTime map[uint16]map[string]time.Time // cacheTimeMs -> containerId -> last network read time
 	retrySleep          func(time.Duration)
+}
+
+type dockerTopResponse struct {
+	Titles    []string   `json:"Titles"`
+	Processes [][]string `json:"Processes"`
+}
+
+type containerPIDAttribution struct {
+	ContainerID string
+	HostPID     string
 }
 
 // userAgentRoundTripper is a custom http.RoundTripper that adds a User-Agent header to all requests
@@ -774,6 +785,207 @@ func buildDockerContainerEndpoint(containerID, action string, query url.Values) 
 		u.RawQuery = query.Encode()
 	}
 	return u.String(), nil
+}
+
+func (dm *dockerManager) getContainerPIDs(containerID string) ([]string, error) {
+	endpoint, err := buildDockerContainerEndpoint(containerID, "top", url.Values{
+		"ps_args": {"-eo pid"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := dm.client.Get(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
+	}
+
+	var top dockerTopResponse
+	if err := json.NewDecoder(resp.Body).Decode(&top); err != nil {
+		return nil, err
+	}
+
+	pidColumn := -1
+	for idx, title := range top.Titles {
+		if strings.EqualFold(strings.TrimSpace(title), "pid") {
+			pidColumn = idx
+			break
+		}
+	}
+	if pidColumn == -1 {
+		return nil, fmt.Errorf("pid column not found")
+	}
+
+	pids := make([]string, 0, len(top.Processes))
+	for _, process := range top.Processes {
+		if pidColumn >= len(process) {
+			continue
+		}
+		pid := strings.TrimSpace(process[pidColumn])
+		if pid != "" {
+			pids = append(pids, pid)
+		}
+	}
+
+	return pids, nil
+}
+
+func (dm *dockerManager) buildContainerPIDMap(containers []*container.Stats) map[string]containerPIDAttribution {
+	if len(containers) == 0 {
+		return nil
+	}
+
+	pidMap := make(map[string]containerPIDAttribution)
+	ambiguousPIDs := make(map[string]struct{})
+	procRoot := procRootForConsumers()
+	failedContainers := 0
+	knownContainerIDs := make(map[string]struct{}, len(containers))
+
+	for _, ctr := range containers {
+		if ctr == nil || ctr.Id == "" {
+			continue
+		}
+		knownContainerIDs[ctr.Id] = struct{}{}
+	}
+
+	assignPID := func(pid, containerID, hostPID string) {
+		pid = strings.TrimSpace(pid)
+		hostPID = strings.TrimSpace(hostPID)
+		if pid == "" || containerID == "" || hostPID == "" {
+			return
+		}
+		if _, ambiguous := ambiguousPIDs[pid]; ambiguous {
+			return
+		}
+		attribution := containerPIDAttribution{
+			ContainerID: containerID,
+			HostPID:     hostPID,
+		}
+		if existing, exists := pidMap[pid]; exists && existing != attribution {
+			delete(pidMap, pid)
+			ambiguousPIDs[pid] = struct{}{}
+			return
+		}
+		pidMap[pid] = attribution
+	}
+
+	hostProcMapped := 0
+	for pid, attribution := range buildContainerPIDMapFromHostProc(procRoot, knownContainerIDs) {
+		assignPID(pid, attribution.ContainerID, attribution.HostPID)
+		hostProcMapped++
+	}
+	if hostProcMapped > 0 {
+		slog.Debug("Seeded container PID map from proc scan", "proc_root", procRoot, "mapped_pids", hostProcMapped)
+	}
+
+	for _, ctr := range containers {
+		if ctr == nil || ctr.Id == "" {
+			continue
+		}
+
+		pids, err := dm.getContainerPIDs(ctr.Id)
+		if err != nil {
+			failedContainers++
+			slog.Debug("Failed to read Docker top for GPU attribution", "container", ctr.Id, "name", ctr.Name, "err", err)
+			continue
+		}
+
+		for _, pid := range pids {
+			assignPID(pid, ctr.Id, pid)
+			for _, nsPID := range readNamespacePIDs(procRoot, pid) {
+				assignPID(nsPID, ctr.Id, pid)
+			}
+		}
+	}
+
+	if failedContainers > 0 {
+		slog.Debug("Container PID map build summary", "total_containers", len(containers), "failed", failedContainers, "mapped_pids", len(pidMap))
+	}
+
+	if len(pidMap) == 0 {
+		return nil
+	}
+
+	return pidMap
+}
+
+func buildContainerPIDMapFromHostProc(procRoot string, knownContainerIDs map[string]struct{}) map[string]containerPIDAttribution {
+	if procRoot == "" || len(knownContainerIDs) == 0 {
+		return nil
+	}
+
+	entries, err := os.ReadDir(procRoot)
+	if err != nil {
+		slog.Debug("Failed to scan host /proc for GPU attribution", "proc_root", procRoot, "err", err)
+		return nil
+	}
+
+	pidMap := make(map[string]containerPIDAttribution)
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		hostPID := entry.Name()
+		if _, err := strconv.Atoi(hostPID); err != nil {
+			continue
+		}
+
+		containerID := containerIDForPID(procRoot, hostPID, knownContainerIDs)
+		if containerID == "" {
+			continue
+		}
+
+		attribution := containerPIDAttribution{
+			ContainerID: shortDockerID(containerID),
+			HostPID:     hostPID,
+		}
+		pidMap[hostPID] = attribution
+
+		for _, nsPID := range readNamespacePIDs(procRoot, hostPID) {
+			nsPID = strings.TrimSpace(nsPID)
+			if nsPID == "" {
+				continue
+			}
+			pidMap[nsPID] = attribution
+		}
+	}
+
+	if len(pidMap) == 0 {
+		return nil
+	}
+
+	return pidMap
+}
+
+func readNamespacePIDs(procRoot, pid string) []string {
+	if procRoot == "" || pid == "" {
+		return nil
+	}
+
+	statusPath := filepath.Join(procRoot, pid, "status")
+	content, err := utils.ReadStringFileLimited(statusPath, 16*1024)
+	if err != nil {
+		return nil
+	}
+
+	for _, line := range strings.Split(content, "\n") {
+		if !strings.HasPrefix(line, "NSpid:") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) <= 1 {
+			return nil
+		}
+		return fields[1:]
+	}
+
+	return nil
 }
 
 // getContainerInfo fetches the inspection data for a container

@@ -4,16 +4,26 @@ WORKDIR /app
 
 # Download Go modules
 COPY ../go.mod ../go.sum ./
+RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
-# Copy source files
-COPY . ./
-
 RUN apk add --no-cache \
+    nodejs \
+    npm \
     unzip \
     ca-certificates
 
 RUN update-ca-certificates
+
+# Install frontend dependencies first for better Docker layer reuse
+COPY ./internal/site/package.json ./internal/site/package-lock.json ./internal/site/
+RUN npm ci --prefix ./internal/site
+
+# Copy source files
+COPY . ./
+
+# Build the frontend so embedded dist always matches the current source
+RUN npm run --prefix ./internal/site build
 
 # Build
 ARG TARGETOS TARGETARCH

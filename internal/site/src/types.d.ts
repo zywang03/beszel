@@ -67,6 +67,8 @@ export interface SystemInfo {
 	p?: boolean
 	/** highest gpu utilization */
 	g?: number
+	/** gpu summaries for dashboard views */
+	gs?: Record<string, GPUData>
 	/** dashboard display temperature */
 	dt?: number
 	/** operating system */
@@ -163,6 +165,21 @@ export interface GPUData {
 	pp?: number
 	/** engines */
 	e?: Record<string, number>
+	/** containers currently using this GPU */
+	c?: GPUConsumer[]
+}
+
+export interface GPUConsumer {
+	/** short container id */
+	i: string
+	/** container name */
+	n: string
+	/** memory used (mb) */
+	mu?: number
+	/** process count */
+	pc?: number
+	/** runtime in seconds for the oldest active GPU process in this container on this GPU */
+	rt?: number
 }
 
 export interface ExtraFsStats {

@@ -18,11 +18,26 @@ msgstr ""
 "X-Crowdin-File: /main/internal/site/src/locales/en/en.po\n"
 "X-Crowdin-File-ID: 32\n"
 
+#. placeholder {0}: Object.keys(summaries).length
+#: src/components/systems-table/systems-table.tsx
+msgid "{0, plural, one {# GPU} other {# GPUs}}"
+msgstr "{0, plural, one {# 張 GPU} other {# 張 GPU}}"
+
+#. placeholder {0}: newVersion.v
+#: src/components/footer-repo-link.tsx
+msgctxt "New version available"
+msgid "{0} available"
+msgstr ""
+
 #. placeholder {0}: table.getFilteredSelectedRowModel().rows.length
 #. placeholder {1}: table.getFilteredRowModel().rows.length
 #: src/components/routes/settings/alerts-history-data-table.tsx
 msgid "{0} of {1} row(s) selected."
 msgstr "已選取 {1} 個項目中的 {0} 個"
+
+#: src/components/gpu-summary.tsx
+#~ msgid "{0} pids"
+#~ msgstr ""
 
 #: src/components/routes/system/info-bar.tsx
 msgid "{cores, plural, one {# core} other {# cores}}"
@@ -43,6 +58,15 @@ msgstr "{count, plural, one {{countString} 分鐘} few {{countString} 分鐘} ma
 #: src/components/routes/system/info-bar.tsx
 msgid "{threads, plural, one {# thread} other {# threads}}"
 msgstr "{threads, plural, one {# 執行緒} other {# 執行緒}}"
+
+#: src/components/gpu-summary.tsx
+msgid "{totalGpuCount, plural, one {# GPU} other {# GPUs}}"
+msgstr "{totalGpuCount, plural, one {# 張 GPU} other {# 張 GPU}}"
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "<1 minute"
+msgstr "<1 分鐘"
 
 #: src/lib/utils.ts
 msgid "1 hour"
@@ -407,6 +431,11 @@ msgstr "衝突"
 msgid "Connection is down"
 msgstr "連線中斷"
 
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "Containers"
+msgstr "容器"
+
 #: src/components/routes/settings/alerts-history-data-table.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Continue"
@@ -553,6 +582,10 @@ msgstr "描述"
 #: src/components/containers-table/containers-table.tsx
 msgid "Detail"
 msgstr "詳細資訊"
+
+#: src/components/systems-table/systems-table.tsx
+msgid "Detailed GPU usage for systems with GPU data."
+msgstr "顯示含 GPU 資料的系統之詳細 GPU 使用情況。"
 
 #: src/components/routes/system/smart-table.tsx
 msgid "Device"
@@ -814,9 +847,24 @@ msgstr "一般"
 msgid "Global"
 msgstr "全域"
 
+#: src/components/gpu-summary.tsx
+#: src/components/systems-table/systems-table-columns.tsx
+#: src/components/systems-table/systems-table.tsx
+msgid "GPU"
+msgstr "GPU"
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "GPU {id}"
+msgstr "GPU {id}"
+
 #: src/components/routes/system.tsx
 msgid "GPU Engines"
 msgstr "GPU 引擎"
+
+#: src/components/systems-table/systems-table.tsx
+msgid "GPU Overview"
+msgstr "GPU 概覽"
 
 #: src/components/routes/system.tsx
 msgid "GPU Power Draw"
@@ -1047,6 +1095,10 @@ msgstr "網路單位"
 msgid "No"
 msgstr "否"
 
+#: src/components/gpu-summary.tsx
+msgid "No containers using this GPU"
+msgstr "目前沒有容器使用這張 GPU"
+
 #: src/components/command-palette.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "No results found."
@@ -1219,6 +1271,11 @@ msgstr "請登入您的帳號"
 #: src/components/add-system.tsx
 msgid "Port"
 msgstr "Port"
+
+#: src/components/containers-table/containers-table-columns.tsx
+msgctxt "Container ports"
+msgid "Ports"
+msgstr ""
 
 #. Power On Time
 #: src/components/routes/system/smart-table.tsx
@@ -1752,6 +1809,14 @@ msgstr "已使用"
 msgid "Users"
 msgstr "使用者"
 
+#: src/components/gpu-summary.tsx
+msgid "Util"
+msgstr "利用率"
+
+#: src/components/gpu-summary.tsx
+msgid "Utilization"
+msgstr "利用率"
+
 #: src/components/alerts-history-columns.tsx
 msgid "Value"
 msgstr "值"
@@ -1772,6 +1837,11 @@ msgstr "檢視最近 200 則警報。"
 #: src/components/systems-table/systems-table.tsx
 msgid "Visible Fields"
 msgstr "顯示欄位"
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "VRAM"
+msgstr "顯存"
 
 #: src/components/routes/system.tsx
 msgid "Waiting for enough records to display"

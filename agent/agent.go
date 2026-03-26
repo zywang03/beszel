@@ -180,6 +180,8 @@ func (a *Agent) gatherStats(options common.DataRequestOptions) *system.CombinedD
 		}
 	}
 
+	a.updateGpuSummaries(data, cacheTimeMs)
+
 	// skip updating systemd services if cache time is not the default 60sec interval
 	if a.systemdManager != nil && cacheTimeMs == 60_000 {
 		totalCount := uint16(a.systemdManager.getServiceStatsCount())

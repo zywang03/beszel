@@ -40,6 +40,7 @@ import { batteryStateTranslations } from "@/lib/i18n"
 import type { SystemRecord } from "@/types"
 import { SystemDialog } from "../add-system"
 import AlertButton from "../alerts/alert-button"
+import { GpuSummaryList } from "../gpu-summary"
 import { $router, Link } from "../router"
 import {
 	AlertDialog,
@@ -137,13 +138,13 @@ export function SystemsTableColumns(viewMode: "table" | "grid"): ColumnDef<Syste
 
 				return (
 					<>
-						<span className="flex gap-2 items-center font-medium text-sm text-nowrap md:ps-1">
+						<span className="flex min-w-0 items-center gap-2 font-medium text-sm text-nowrap md:ps-1">
 							<IndicatorDot system={info.row.original} />
 							<Link
 								href={linkUrl}
 								tabIndex={-1}
-								className="truncate z-10 relative"
-								style={{ width: `${longestName / 1.05}ch` }}
+								className="relative z-10 block max-w-full truncate"
+								style={{ maxWidth: `${Math.min(Math.max(longestName / 1.05, 12), 28)}ch` }}
 								onMouseEnter={(e) => {
 									// set title on hover if text is truncated to show full name
 									const a = e.currentTarget
@@ -189,14 +190,18 @@ export function SystemsTableColumns(viewMode: "table" | "grid"): ColumnDef<Syste
 			Icon: HardDriveIcon,
 			header: sortableHeader,
 		},
-		{
-			accessorFn: ({ info }) => info.g || undefined,
-			id: "gpu",
-			name: () => "GPU",
-			cell: TableCellWithMeter,
-			Icon: GpuIcon,
-			header: sortableHeader,
-		},
+		...(viewMode === "grid"
+			? [
+					{
+						accessorFn: ({ info }) => info.g || undefined,
+						id: "gpu",
+						name: () => t`GPU`,
+						cell: GpuCell,
+						Icon: GpuIcon,
+						header: sortableHeader,
+					},
+				]
+			: []),
 		{
 			id: "loadAverage",
 			accessorFn: ({ info }) => info.la?.reduce((acc, curr) => acc + curr, 0),
@@ -474,6 +479,15 @@ function TableCellWithMeter(info: CellContext<SystemRecord, unknown>) {
 			</span>
 		</div>
 	)
+}
+
+function GpuCell(info: CellContext<SystemRecord, unknown>) {
+	const { info: systemInfo, status } = info.row.original
+	const summaries = systemInfo.gs
+	if (summaries && Object.keys(summaries).length > 0) {
+		return <GpuSummaryList gpus={summaries} status={status} />
+	}
+	return TableCellWithMeter(info)
 }
 
 function DiskCellWithMultiple(info: CellContext<SystemRecord, unknown>) {

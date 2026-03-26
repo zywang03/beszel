@@ -151,7 +151,7 @@
 
 @utility container {
 	max-width: var(--container);
-	@apply mx-auto px-4;
+	@apply mx-auto px-4 md:px-5 xl:px-6;
 }
 
 @utility link {

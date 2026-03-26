@@ -18,11 +18,26 @@ msgstr ""
 "X-Crowdin-File: /main/internal/site/src/locales/en/en.po\n"
 "X-Crowdin-File-ID: 32\n"
 
+#. placeholder {0}: Object.keys(summaries).length
+#: src/components/systems-table/systems-table.tsx
+msgid "{0, plural, one {# GPU} other {# GPUs}}"
+msgstr ""
+
+#. placeholder {0}: newVersion.v
+#: src/components/footer-repo-link.tsx
+msgctxt "New version available"
+msgid "{0} available"
+msgstr ""
+
 #. placeholder {0}: table.getFilteredSelectedRowModel().rows.length
 #. placeholder {1}: table.getFilteredRowModel().rows.length
 #: src/components/routes/settings/alerts-history-data-table.tsx
 msgid "{0} of {1} row(s) selected."
 msgstr "Đã chọn {0} trên {1} hàng."
+
+#: src/components/gpu-summary.tsx
+#~ msgid "{0} pids"
+#~ msgstr ""
 
 #: src/components/routes/system/info-bar.tsx
 msgid "{cores, plural, one {# core} other {# cores}}"
@@ -43,6 +58,15 @@ msgstr "{count, plural, one {{countString} phút} few {{countString} phút} many
 #: src/components/routes/system/info-bar.tsx
 msgid "{threads, plural, one {# thread} other {# threads}}"
 msgstr "{threads, plural, one {# luồng} other {# luồng}}"
+
+#: src/components/gpu-summary.tsx
+msgid "{totalGpuCount, plural, one {# GPU} other {# GPUs}}"
+msgstr ""
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "<1 minute"
+msgstr ""
 
 #: src/lib/utils.ts
 msgid "1 hour"
@@ -407,6 +431,11 @@ msgstr "Xung đột"
 msgid "Connection is down"
 msgstr "Mất kết nối"
 
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "Containers"
+msgstr ""
+
 #: src/components/routes/settings/alerts-history-data-table.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Continue"
@@ -553,6 +582,10 @@ msgstr "Mô tả"
 #: src/components/containers-table/containers-table.tsx
 msgid "Detail"
 msgstr "Chi tiết"
+
+#: src/components/systems-table/systems-table.tsx
+msgid "Detailed GPU usage for systems with GPU data."
+msgstr ""
 
 #: src/components/routes/system/smart-table.tsx
 msgid "Device"
@@ -814,9 +847,24 @@ msgstr "Chung"
 msgid "Global"
 msgstr "Toàn cầu"
 
+#: src/components/gpu-summary.tsx
+#: src/components/systems-table/systems-table-columns.tsx
+#: src/components/systems-table/systems-table.tsx
+msgid "GPU"
+msgstr ""
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "GPU {id}"
+msgstr ""
+
 #: src/components/routes/system.tsx
 msgid "GPU Engines"
 msgstr "Động cơ GPU"
+
+#: src/components/systems-table/systems-table.tsx
+msgid "GPU Overview"
+msgstr ""
 
 #: src/components/routes/system.tsx
 msgid "GPU Power Draw"
@@ -1047,6 +1095,10 @@ msgstr "Đơn vị mạng"
 msgid "No"
 msgstr "Không"
 
+#: src/components/gpu-summary.tsx
+msgid "No containers using this GPU"
+msgstr ""
+
 #: src/components/command-palette.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "No results found."
@@ -1219,6 +1271,11 @@ msgstr "Vui lòng đăng nhập vào tài khoản của bạn"
 #: src/components/add-system.tsx
 msgid "Port"
 msgstr "Cổng"
+
+#: src/components/containers-table/containers-table-columns.tsx
+msgctxt "Container ports"
+msgid "Ports"
+msgstr ""
 
 #. Power On Time
 #: src/components/routes/system/smart-table.tsx
@@ -1752,6 +1809,14 @@ msgstr "Đã sử dụng"
 msgid "Users"
 msgstr "Người dùng"
 
+#: src/components/gpu-summary.tsx
+msgid "Util"
+msgstr ""
+
+#: src/components/gpu-summary.tsx
+msgid "Utilization"
+msgstr ""
+
 #: src/components/alerts-history-columns.tsx
 msgid "Value"
 msgstr "Giá trị"
@@ -1772,6 +1837,11 @@ msgstr "Xem 200 cảnh báo gần đây nhất của bạn."
 #: src/components/systems-table/systems-table.tsx
 msgid "Visible Fields"
 msgstr "Các cột hiển thị"
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "VRAM"
+msgstr ""
 
 #: src/components/routes/system.tsx
 msgid "Waiting for enough records to display"

@@ -13,11 +13,26 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. placeholder {0}: Object.keys(summaries).length
+#: src/components/systems-table/systems-table.tsx
+msgid "{0, plural, one {# GPU} other {# GPUs}}"
+msgstr "{0, plural, one {# GPU} other {# GPUs}}"
+
+#. placeholder {0}: newVersion.v
+#: src/components/footer-repo-link.tsx
+msgctxt "New version available"
+msgid "{0} available"
+msgstr "{0} available"
+
 #. placeholder {0}: table.getFilteredSelectedRowModel().rows.length
 #. placeholder {1}: table.getFilteredRowModel().rows.length
 #: src/components/routes/settings/alerts-history-data-table.tsx
 msgid "{0} of {1} row(s) selected."
 msgstr "{0} of {1} row(s) selected."
+
+#: src/components/gpu-summary.tsx
+#~ msgid "{0} pids"
+#~ msgstr "{0} pids"
 
 #: src/components/routes/system/info-bar.tsx
 msgid "{cores, plural, one {# core} other {# cores}}"
@@ -38,6 +53,15 @@ msgstr "{count, plural, one {{countString} minute} few {{countString} minutes} m
 #: src/components/routes/system/info-bar.tsx
 msgid "{threads, plural, one {# thread} other {# threads}}"
 msgstr "{threads, plural, one {# thread} other {# threads}}"
+
+#: src/components/gpu-summary.tsx
+msgid "{totalGpuCount, plural, one {# GPU} other {# GPUs}}"
+msgstr "{totalGpuCount, plural, one {# GPU} other {# GPUs}}"
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "<1 minute"
+msgstr "<1 minute"
 
 #: src/lib/utils.ts
 msgid "1 hour"
@@ -402,6 +426,11 @@ msgstr "Conflicts"
 msgid "Connection is down"
 msgstr "Connection is down"
 
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "Containers"
+msgstr "Containers"
+
 #: src/components/routes/settings/alerts-history-data-table.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Continue"
@@ -548,6 +577,10 @@ msgstr "Description"
 #: src/components/containers-table/containers-table.tsx
 msgid "Detail"
 msgstr "Detail"
+
+#: src/components/systems-table/systems-table.tsx
+msgid "Detailed GPU usage for systems with GPU data."
+msgstr "Detailed GPU usage for systems with GPU data."
 
 #: src/components/routes/system/smart-table.tsx
 msgid "Device"
@@ -809,9 +842,24 @@ msgstr "General"
 msgid "Global"
 msgstr "Global"
 
+#: src/components/gpu-summary.tsx
+#: src/components/systems-table/systems-table-columns.tsx
+#: src/components/systems-table/systems-table.tsx
+msgid "GPU"
+msgstr "GPU"
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "GPU {id}"
+msgstr "GPU {id}"
+
 #: src/components/routes/system.tsx
 msgid "GPU Engines"
 msgstr "GPU Engines"
+
+#: src/components/systems-table/systems-table.tsx
+msgid "GPU Overview"
+msgstr "GPU Overview"
 
 #: src/components/routes/system.tsx
 msgid "GPU Power Draw"
@@ -1042,6 +1090,10 @@ msgstr "Network unit"
 msgid "No"
 msgstr "No"
 
+#: src/components/gpu-summary.tsx
+msgid "No containers using this GPU"
+msgstr "No containers using this GPU"
+
 #: src/components/command-palette.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "No results found."
@@ -1214,6 +1266,11 @@ msgstr "Please sign in to your account"
 #: src/components/add-system.tsx
 msgid "Port"
 msgstr "Port"
+
+#: src/components/containers-table/containers-table-columns.tsx
+msgctxt "Container ports"
+msgid "Ports"
+msgstr "Ports"
 
 #. Power On Time
 #: src/components/routes/system/smart-table.tsx
@@ -1747,6 +1804,14 @@ msgstr "Used"
 msgid "Users"
 msgstr "Users"
 
+#: src/components/gpu-summary.tsx
+msgid "Util"
+msgstr "Util"
+
+#: src/components/gpu-summary.tsx
+msgid "Utilization"
+msgstr "Utilization"
+
 #: src/components/alerts-history-columns.tsx
 msgid "Value"
 msgstr "Value"
@@ -1767,6 +1832,11 @@ msgstr "View your 200 most recent alerts."
 #: src/components/systems-table/systems-table.tsx
 msgid "Visible Fields"
 msgstr "Visible Fields"
+
+#: src/components/gpu-summary.tsx
+#: src/components/gpu-summary.tsx
+msgid "VRAM"
+msgstr "VRAM"
 
 #: src/components/routes/system.tsx
 msgid "Waiting for enough records to display"

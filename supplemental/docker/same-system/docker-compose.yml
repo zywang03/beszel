@@ -18,9 +18,10 @@ services:
     # runtime: nvidia # when using beszel-agent-nvidia
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - /proc:/host/proc:ro # when using beszel-agent-nvidia and GPU container attribution
     environment:
       PORT: 45876
       KEY: '...'
       # FILESYSTEM: /dev/sda1 # set to the correct filesystem for disk I/O stats
       # NVIDIA_VISIBLE_DEVICES: all # when using beszel-agent-nvidia
-      # NVIDIA_DRIVER_CAPABILITIES: utility # when using beszel-agent-nvidia
+      # NVIDIA_DRIVER_CAPABILITIES: compute,utility # when using beszel-agent-nvidia

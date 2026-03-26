@@ -56,6 +56,7 @@ import { $router, navigate } from "../router"
 import Spinner from "../spinner"
 import { Button } from "../ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { GpuSummaryCards } from "../gpu-summary"
 import { ChartAverage, ChartMax } from "../ui/icons"
 import { Input } from "../ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
@@ -402,6 +403,7 @@ export default memo(function SystemDetail({ id }: { id: string }) {
 
 	const dataEmpty = !chartLoading && chartData.systemStats.length === 0
 	const lastGpus = systemStats.at(-1)?.stats?.g
+	const summaryGpus = lastGpus ?? system.info.gs
 
 	let hasGpuData = false
 	let hasGpuEnginesData = false
@@ -722,6 +724,12 @@ export default memo(function SystemDetail({ id }: { id: string }) {
 						</ChartCard>
 					)}
 				</div>
+
+				{summaryGpus && Object.keys(summaryGpus).length > 0 && (
+					<div className="grid xl:grid-cols-2 gap-4">
+						<GpuSummaryCards gpus={summaryGpus} status={system.status} />
+					</div>
+				)}
 
 				{/* Non-power GPU charts */}
 				{hasGpuData && (
