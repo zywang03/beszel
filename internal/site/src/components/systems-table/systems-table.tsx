@@ -62,6 +62,7 @@ const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
 	battery: false,
 	services: false,
 	uptime: false,
+	actions: false,
 }
 
 function mergeDefaultColumnVisibility(value: VisibilityState): VisibilityState {
@@ -85,20 +86,14 @@ export default function SystemsTable() {
 		sessionStorage
 	)
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [columnVisibility, setColumnVisibility] = useBrowserStorage<VisibilityState>(
-		"cols",
-		DEFAULT_COLUMN_VISIBILITY
-	)
+	const [columnVisibility, setColumnVisibility] = useBrowserStorage<VisibilityState>("cols", DEFAULT_COLUMN_VISIBILITY)
 
 	useEffect(() => {
 		setColumnVisibility((prev) => {
 			const merged = mergeDefaultColumnVisibility(prev)
 			const prevKeys = Object.keys(prev)
 			const mergedKeys = Object.keys(merged)
-			if (
-				prevKeys.length === mergedKeys.length &&
-				mergedKeys.every((key) => prev[key] === merged[key])
-			) {
+			if (prevKeys.length === mergedKeys.length && mergedKeys.every((key) => prev[key] === merged[key])) {
 				return prev
 			}
 			return merged
@@ -121,10 +116,7 @@ export default function SystemsTable() {
 		return Object.values(pausedSystems) ?? []
 	}, [data, statusFilter])
 
-	const [viewMode, setViewMode] = useBrowserStorage<ViewMode>(
-		"viewMode",
-		"grid"
-	)
+	const [viewMode, setViewMode] = useBrowserStorage<ViewMode>("viewMode", "grid")
 
 	useEffect(() => {
 		if (filter !== undefined) {
@@ -501,6 +493,7 @@ const SystemTableRow = memo(
 		return (
 			<TableRow
 				ref={setMainRowRef}
+				data-visible-columns={visibleColumnSignature}
 				// data-state={row.getIsSelected() && "selected"}
 				className={cn("cursor-pointer transition-opacity relative safari:transform-3d", {
 					"opacity-50": system.status === SystemStatus.Paused,
@@ -541,9 +534,12 @@ const SystemsGpuPanel = memo(({ rows }: { rows: Row<SystemRecord>[] }) => {
 						return (
 							<div
 								key={system.id}
-								className={cn("w-full min-w-0 max-w-full overflow-hidden rounded-md border border-border/70 bg-muted/10 p-4", {
-									"opacity-50": system.status === SystemStatus.Paused,
-								})}
+								className={cn(
+									"w-full min-w-0 max-w-full overflow-hidden rounded-md border border-border/70 bg-muted/10 p-4",
+									{
+										"opacity-50": system.status === SystemStatus.Paused,
+									}
+								)}
 							>
 								<div className="mb-3 flex items-center justify-between gap-3">
 									<Link
@@ -617,7 +613,12 @@ const SystemCard = memo(
 					<CardContent className="text-sm px-5 pt-3.5 pb-4">
 						<div className="grid gap-2.5" style={{ gridTemplateColumns: "24px minmax(80px, max-content) 1fr" }}>
 							{table.getAllColumns().map((column) => {
-								if (!column.getIsVisible() || column.id === "system" || column.id === "actions" || column.id === "gpu") {
+								if (
+									!column.getIsVisible() ||
+									column.id === "system" ||
+									column.id === "actions" ||
+									column.id === "gpu"
+								) {
 									return null
 								}
 								const cell = row.getAllCells().find((cell) => cell.column.id === column.id)
