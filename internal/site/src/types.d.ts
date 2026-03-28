@@ -25,6 +25,8 @@ export interface FingerprintRecord extends RecordModel {
 export interface SystemRecord extends RecordModel {
 	name: string
 	host: string
+	device_admin?: string
+	location?: string
 	status: "up" | "down" | "paused" | "pending"
 	port: string
 	info: SystemInfo

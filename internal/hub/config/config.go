@@ -21,11 +21,13 @@ type config struct {
 }
 
 type systemConfig struct {
-	Name  string   `yaml:"name"`
-	Host  string   `yaml:"host"`
-	Port  uint16   `yaml:"port,omitempty"`
-	Token string   `yaml:"token,omitempty"`
-	Users []string `yaml:"users"`
+	Name        string   `yaml:"name"`
+	Host        string   `yaml:"host"`
+	Port        uint16   `yaml:"port,omitempty"`
+	Token       string   `yaml:"token,omitempty"`
+	Users       []string `yaml:"users"`
+	DeviceAdmin string   `yaml:"device_admin,omitempty"`
+	Location    string   `yaml:"location,omitempty"`
 }
 
 // Syncs systems with the config.yml file
@@ -107,6 +109,8 @@ func SyncSystems(e *core.ServeEvent) error {
 			existingSystem.Set("name", sysConfig.Name)
 			existingSystem.Set("users", sysConfig.Users)
 			existingSystem.Set("port", sysConfig.Port)
+			existingSystem.Set("device_admin", sysConfig.DeviceAdmin)
+			existingSystem.Set("location", sysConfig.Location)
 			if err := h.Save(existingSystem); err != nil {
 				return err
 			}
@@ -130,6 +134,8 @@ func SyncSystems(e *core.ServeEvent) error {
 			newSystem.Set("host", sysConfig.Host)
 			newSystem.Set("port", sysConfig.Port)
 			newSystem.Set("users", sysConfig.Users)
+			newSystem.Set("device_admin", sysConfig.DeviceAdmin)
+			newSystem.Set("location", sysConfig.Location)
 			newSystem.Set("info", system.Info{})
 			newSystem.Set("status", "pending")
 			if err := h.Save(newSystem); err != nil {
@@ -212,11 +218,13 @@ func generateYAML(h core.App) (string, error) {
 		}
 
 		sysConfig := systemConfig{
-			Name:  system.GetString("name"),
-			Host:  system.GetString("host"),
-			Port:  cast.ToUint16(system.Get("port")),
-			Users: userEmails,
-			Token: systemTokenMap[system.Id],
+			Name:        system.GetString("name"),
+			Host:        system.GetString("host"),
+			Port:        cast.ToUint16(system.Get("port")),
+			Users:       userEmails,
+			Token:       systemTokenMap[system.Id],
+			DeviceAdmin: system.GetString("device_admin"),
+			Location:    system.GetString("location"),
 		}
 		config.Systems = append(config.Systems, sysConfig)
 	}
