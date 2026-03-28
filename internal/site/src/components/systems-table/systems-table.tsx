@@ -598,14 +598,30 @@ const SystemCard = memo(
 						}
 					)}
 				>
-					<CardHeader className="py-1 ps-5 pe-3 bg-muted/30 border-b border-border/60">
-						<div className="flex items-center gap-2 w-full overflow-hidden">
-							<CardTitle className="text-base tracking-normal text-primary/90 flex items-center min-w-0 flex-1 gap-2.5">
-								<div className="flex items-center gap-2.5 min-w-0 flex-1">
-									<IndicatorDot system={system} />
-									<span className="text-[.95em]/normal tracking-normal text-primary/90 truncate">{system.name}</span>
-								</div>
-							</CardTitle>
+					<CardHeader className="py-2 ps-5 pe-3 bg-muted/30 border-b border-border/60">
+						<div className="flex items-start gap-2 w-full overflow-hidden">
+							<div className="min-w-0 flex-1">
+								<CardTitle className="text-base tracking-normal text-primary/90 flex items-center min-w-0 gap-2.5">
+									<div className="flex items-center gap-2.5 min-w-0 flex-1">
+										<IndicatorDot system={system} />
+										<span className="text-[.95em]/normal tracking-normal text-primary/90 truncate">{system.name}</span>
+									</div>
+								</CardTitle>
+								{(system.device_admin || system.location) && (
+									<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 ps-4.5 text-xs text-muted-foreground">
+										{system.device_admin && (
+											<span className="truncate">
+												<Trans>管理员</Trans>：{system.device_admin}
+											</span>
+										)}
+										{system.location && (
+											<span className="truncate">
+												<Trans>位置</Trans>：{system.location}
+											</span>
+										)}
+									</div>
+								)}
+							</div>
 							{table.getColumn("actions")?.getIsVisible() && (
 								<div className="flex gap-1 shrink-0 relative z-10">
 									<AlertButton system={system} />

@@ -191,6 +191,14 @@ export const SystemDialog = ({ setOpen, system }: { setOpen: (open: boolean) => 
 							<Trans>Name</Trans>
 						</Label>
 						<Input id="name" name="name" defaultValue={system?.name} required />
+						<Label htmlFor="device_admin" className="xs:text-end">
+							<Trans>管理员</Trans>
+						</Label>
+						<Input id="device_admin" name="device_admin" defaultValue={system?.device_admin} />
+						<Label htmlFor="location" className="xs:text-end">
+							<Trans>位置</Trans>
+						</Label>
+						<Input id="location" name="location" defaultValue={system?.location} />
 						<Label htmlFor="host" className="xs:text-end">
 							<Trans>Host / IP</Trans>
 						</Label>

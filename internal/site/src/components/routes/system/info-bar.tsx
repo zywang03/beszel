@@ -7,9 +7,11 @@ import {
 	CpuIcon,
 	GlobeIcon,
 	LayoutGridIcon,
+	MapPinIcon,
 	MemoryStickIcon,
 	MonitorIcon,
 	Rows,
+	UserIcon,
 } from "lucide-react"
 import { useMemo } from "react"
 import ChartTimeSelect from "@/components/charts/chart-time-select"
@@ -79,6 +81,18 @@ export default function InfoBar({
 
 		const info = [
 			{ value: getHostDisplayValue(system), Icon: GlobeIcon },
+			{
+				value: system.location,
+				Icon: MapPinIcon,
+				label: t`位置`,
+				hide: !system.location,
+			},
+			{
+				value: system.device_admin,
+				Icon: UserIcon,
+				label: t`管理员`,
+				hide: !system.device_admin,
+			},
 			{
 				value: hostname,
 				Icon: MonitorIcon,
