@@ -1,0 +1,28 @@
+{
+  "id": "demo-transfer-001",
+  "source_node": "xsuper@10.15.88.84",
+  "dest_node": "xsuper@10.15.88.85",
+  "use_jump_host": false,
+  "container_name": "luht",
+  "target_image": "luht-migrated",
+  "allow_target_image_overwrite": false,
+  "setup_volume": true,
+  "mount_bindings": [
+    {
+      "inner_path": "/data",
+      "dest_vol_dir": "/data/containers/luht"
+    }
+  ],
+  "inner_path": "",
+  "dest_vol_dir": "",
+  "auto_start": false,
+  "port": "",
+  "target_container": "",
+  "extra_run_args": "",
+  "source_sudo_password": "",
+  "dest_sudo_password": "",
+  "remove_existing_container": false,
+  "keep_local_cache": false,
+  "shm_size": "1500G",
+  "max_image_size_gb": 200
+}

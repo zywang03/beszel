@@ -259,7 +259,7 @@ func (a *Agent) getNvidiaGPUConsumers(gpus map[string]system.GPUData, containers
 }
 
 func readNvidiaGPUProcesses() (*nvidiaSmiLog, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSmiConsumerRead)
+	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSmiConsumerReadTimeout())
 	defer cancel()
 
 	if _, err := exec.LookPath(nvidiaSmiCmd); err != nil {
@@ -277,6 +277,21 @@ func readNvidiaGPUProcesses() (*nvidiaSmiLog, error) {
 		return nil, err
 	}
 	return &data, nil
+}
+
+func nvidiaSmiConsumerReadTimeout() time.Duration {
+	raw, ok := utils.GetEnv("NVIDIA_SMI_CONSUMER_TIMEOUT")
+	if !ok || strings.TrimSpace(raw) == "" {
+		return nvidiaSmiConsumerRead
+	}
+
+	timeout, err := time.ParseDuration(strings.TrimSpace(raw))
+	if err != nil || timeout <= 0 {
+		slog.Warn("Invalid NVIDIA_SMI_CONSUMER_TIMEOUT", "value", raw, "err", err)
+		return nvidiaSmiConsumerRead
+	}
+
+	return timeout
 }
 
 func procRootForConsumers() string {

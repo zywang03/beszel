@@ -99,6 +99,10 @@ func (h *Hub) registerApiRoutes(se *core.ServeEvent) error {
 	apiAuth.POST("/smart/refresh", h.refreshSmartData)
 	// get systemd service details
 	apiAuth.GET("/systemd/info", h.getSystemdInfo)
+	// docker transfer task queue
+	apiAuth.GET("/docker-transfer/config", h.getDockerTransferConfig)
+	apiAuth.POST("/docker-transfer/tasks", h.createDockerTransferTask)
+	apiAuth.GET("/docker-transfer/task-status", h.getDockerTransferTaskStatus)
 	// /containers routes
 	if enabled, _ := GetEnv("CONTAINER_DETAILS"); enabled != "false" {
 		// get container logs
