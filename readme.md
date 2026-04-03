@@ -68,3 +68,10 @@ Support requests and general discussion can be posted on [GitHub discussions](ht
 ## License
 
 Beszel is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+
+
+
+ QUEUE_ROOT=/home/luhaotao/data/docker_tmp \
+  SSH_KEY_PATH=/home/luhaotao/.ssh/id_ed25519 \
+  /home/luhaotao/data/beszel/test/test_docker_transfer.sh worker
