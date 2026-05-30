@@ -33,6 +33,14 @@ Beszel consists of two main components: the **hub** and the **agent**.
 
 The [quick start guide](https://beszel.dev/guide/getting-started) and other documentation is available on our website, [beszel.dev](https://beszel.dev). You'll be up and running in a few minutes.
 
+## Docker transfer
+```
+bash
+cd ~/bsezel/docker_transfer
+bash docker_transfer.sh
+```
+
+
 ## Screenshots
 
 ![Dashboard](https://beszel.dev/image/dashboard.png)
@@ -71,7 +79,5 @@ Beszel is licensed under the MIT License. See the [LICENSE](LICENSE) file for mo
 
 
 
+QUEUE_ROOT=/home/luhaotao/data/docker_tmp   SSH_KEY_PATH=/home/luhaotao/.ssh/id_ed25519   SSH_CONFIG_PATH=/home/luhaotao/.ssh/config_relay   /home/luhaotao/data/beszel/test/test_docker_transfer.sh worker
 
- QUEUE_ROOT=/home/luhaotao/data/docker_tmp \
-  SSH_KEY_PATH=/home/luhaotao/.ssh/id_ed25519 \
-  /home/luhaotao/data/beszel/test/test_docker_transfer.sh worker
