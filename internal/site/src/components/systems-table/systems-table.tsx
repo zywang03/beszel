@@ -61,7 +61,7 @@ const VIEW_MODE_DEFAULTS_VERSION_KEY = "systems-table-view-mode-defaults-version
 const VIEW_MODE_DEFAULTS_VERSION = 1
 const COLUMN_VISIBILITY_STORAGE_KEY = "cols"
 const COLUMN_VISIBILITY_DEFAULTS_VERSION_KEY = "systems-table-cols-defaults-version"
-const COLUMN_VISIBILITY_DEFAULTS_VERSION = 1
+const COLUMN_VISIBILITY_DEFAULTS_VERSION = 2
 
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
 	cpu: false,
@@ -70,7 +70,7 @@ const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {
 	battery: false,
 	services: false,
 	uptime: false,
-	actions: false,
+	actions: true,
 }
 
 function mergeDefaultColumnVisibility(value: VisibilityState): VisibilityState {
@@ -130,7 +130,7 @@ export default function SystemsTable() {
 			const merged = mergeDefaultColumnVisibility(prev)
 
 			if (shouldApplyUpdatedDefaults) {
-				merged.actions = false
+				merged.actions = true
 			}
 
 			if (isSameVisibilityState(prev, merged)) {
