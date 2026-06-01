@@ -107,6 +107,8 @@ func unmarshalLegacyResponse(resp common.AgentResponse, action common.WebSocketA
 		}
 		*d = resp.ServiceInfo
 		return nil
+	case common.ControlContainer:
+		return errors.New("container control requires a newer agent response format")
 	}
 	return fmt.Errorf("unsupported action: %d", action)
 }

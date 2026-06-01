@@ -103,6 +103,8 @@ func (h *Hub) registerApiRoutes(se *core.ServeEvent) error {
 	apiAuth.GET("/docker-transfer/config", h.getDockerTransferConfig)
 	apiAuth.POST("/docker-transfer/tasks", h.createDockerTransferTask)
 	apiAuth.GET("/docker-transfer/task-status", h.getDockerTransferTaskStatus)
+	// gpu blackroom status
+	apiAuth.GET("/gpu-blackroom/status", h.getGPUBlackroomStatus)
 	// /containers routes
 	if enabled, _ := GetEnv("CONTAINER_DETAILS"); enabled != "false" {
 		// get container logs
@@ -266,6 +268,16 @@ func (h *Hub) getHeartbeatStatus(e *core.RequestEvent) error {
 		"interval": cfg.Interval,
 		"method":   cfg.Method,
 	})
+}
+
+func (h *Hub) getGPUBlackroomStatus(e *core.RequestEvent) error {
+	if e.Auth.GetString("role") != "admin" {
+		return e.ForbiddenError("Requires admin role", nil)
+	}
+	if h.gpuBlackroom == nil {
+		return e.JSON(http.StatusOK, map[string]any{"enabled": false})
+	}
+	return e.JSON(http.StatusOK, h.gpuBlackroom.Status())
 }
 
 // testHeartbeat triggers a single heartbeat ping and returns the result

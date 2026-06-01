@@ -51,6 +51,7 @@ func NewHandlerRegistry() *HandlerRegistry {
 	registry.Register(common.GetContainerInfo, &GetContainerInfoHandler{})
 	registry.Register(common.GetSmartData, &GetSmartDataHandler{})
 	registry.Register(common.GetSystemdInfo, &GetSystemdInfoHandler{})
+	registry.Register(common.ControlContainer, &ControlContainerHandler{})
 
 	return registry
 }
@@ -156,6 +157,31 @@ func (h *GetContainerInfoHandler) Handle(hctx *HandlerContext) error {
 	}
 
 	return hctx.SendResponse(string(info), hctx.RequestID)
+}
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+// ControlContainerHandler handles limited Docker container control requests.
+type ControlContainerHandler struct{}
+
+func (h *ControlContainerHandler) Handle(hctx *HandlerContext) error {
+	if hctx.Agent.dockerManager == nil {
+		return errors.New("docker manager is unavailable")
+	}
+
+	var req common.ContainerControlRequest
+	if err := cbor.Unmarshal(hctx.Request.Data, &req); err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	result, err := hctx.Agent.dockerManager.controlContainer(ctx, req.ContainerID, req.Operation)
+	if err != nil {
+		return err
+	}
+
+	return hctx.SendResponse(result, hctx.RequestID)
 }
 
 ////////////////////////////////////////////////////////////////////////////

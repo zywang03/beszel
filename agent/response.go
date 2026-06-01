@@ -23,6 +23,8 @@ func newAgentResponse(data any, requestID *uint32) common.AgentResponse {
 		response.SmartData = v
 	case systemd.ServiceDetails:
 		response.ServiceInfo = v
+	case common.ContainerControlResponse:
+		response.Data, _ = cbor.Marshal(v)
 	default:
 		// For unknown types, use the generic Data field
 		response.Data, _ = cbor.Marshal(data)

@@ -25,6 +25,7 @@ import (
 
 	"github.com/henrygd/beszel/agent/deltatracker"
 	"github.com/henrygd/beszel/agent/utils"
+	"github.com/henrygd/beszel/internal/common"
 	"github.com/henrygd/beszel/internal/entities/container"
 
 	"github.com/blang/semver"
@@ -785,6 +786,51 @@ func buildDockerContainerEndpoint(containerID, action string, query url.Values) 
 		u.RawQuery = query.Encode()
 	}
 	return u.String(), nil
+}
+
+func normalizeContainerControlOperation(operation string) (string, error) {
+	switch strings.TrimSpace(strings.ToLower(operation)) {
+	case "stop":
+		return "stop", nil
+	case "start":
+		return "start", nil
+	default:
+		return "", fmt.Errorf("unsupported container operation: %s", operation)
+	}
+}
+
+func (dm *dockerManager) controlContainer(ctx context.Context, containerID string, operation string) (common.ContainerControlResponse, error) {
+	operation, err := normalizeContainerControlOperation(operation)
+	if err != nil {
+		return common.ContainerControlResponse{}, err
+	}
+	endpoint, err := buildDockerContainerEndpoint(containerID, operation, nil)
+	if err != nil {
+		return common.ContainerControlResponse{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, nil)
+	if err != nil {
+		return common.ContainerControlResponse{}, err
+	}
+	resp, err := dm.client.Do(req)
+	if err != nil {
+		return common.ContainerControlResponse{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusNotModified {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		msg := strings.TrimSpace(string(body))
+		if msg == "" {
+			msg = resp.Status
+		}
+		return common.ContainerControlResponse{}, fmt.Errorf("docker %s failed for container %s: %s", operation, containerID, msg)
+	}
+	return common.ContainerControlResponse{
+		Operation:   operation,
+		ContainerID: containerID,
+		Ok:          true,
+		Message:     resp.Status,
+	}, nil
 }
 
 func (dm *dockerManager) getContainerPIDs(containerID string) ([]string, error) {

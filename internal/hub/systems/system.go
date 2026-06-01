@@ -138,6 +138,9 @@ func (sys *System) update() error {
 
 	// create system records
 	_, err = sys.createRecords(data)
+	if err == nil {
+		sys.manager.hub.EvaluateGPUBlackroom()
+	}
 
 	// if details were included and fetched successfully, mark details as fetched and update smart interval if set by agent
 	if err == nil && data.Details != nil {
@@ -497,6 +500,15 @@ func (sys *System) FetchContainerLogsFromAgent(containerID string) (string, erro
 	defer cancel()
 	var result string
 	err := sys.request(ctx, common.GetContainerLogs, common.ContainerLogsRequest{ContainerID: containerID}, &result)
+	return result, err
+}
+
+// ControlContainerFromAgent asks the agent to stop or start a Docker container.
+func (sys *System) ControlContainerFromAgent(containerID string, operation string) (common.ContainerControlResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	var result common.ContainerControlResponse
+	err := sys.request(ctx, common.ControlContainer, common.ContainerControlRequest{ContainerID: containerID, Operation: operation}, &result)
 	return result, err
 }
 
