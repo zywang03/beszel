@@ -242,6 +242,61 @@ func TestGetPodmanContainerHealth(t *testing.T) {
 	assert.Equal(t, container.DockerHealthHealthy, health)
 }
 
+func TestControlContainerUsesExpectedDockerEndpoint(t *testing.T) {
+	tests := []struct {
+		name      string
+		operation string
+		path      string
+	}{
+		{name: "stop", operation: "stop", path: "/containers/0123456789ab/stop"},
+		{name: "start", operation: "start", path: "/containers/0123456789ab/start"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var method string
+			var path string
+			dm := &dockerManager{
+				client: &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+					method = req.Method
+					path = req.URL.EscapedPath()
+					return &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     "204 No Content",
+						Header:     make(http.Header),
+						Body:       io.NopCloser(strings.NewReader("")),
+						Request:    req,
+					}, nil
+				})},
+			}
+
+			result, err := dm.controlContainer(context.Background(), "0123456789ab", tt.operation)
+
+			require.NoError(t, err)
+			assert.True(t, result.Ok)
+			assert.Equal(t, tt.operation, result.Operation)
+			assert.Equal(t, "0123456789ab", result.ContainerID)
+			assert.Equal(t, http.MethodPost, method)
+			assert.Equal(t, tt.path, path)
+		})
+	}
+}
+
+func TestControlContainerRejectsInvalidInput(t *testing.T) {
+	dm := &dockerManager{client: &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		t.Fatal("Docker API should not be called for invalid input")
+		return nil, nil
+	})}}
+
+	_, err := dm.controlContainer(context.Background(), "../version", "stop")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid container id")
+
+	_, err = dm.controlContainer(context.Background(), "0123456789ab", "remove")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported container operation")
+}
+
 func TestValidateCpuPercentage(t *testing.T) {
 	tests := []struct {
 		name          string

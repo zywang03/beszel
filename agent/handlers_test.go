@@ -41,6 +41,10 @@ func TestHandlerRegistry(t *testing.T) {
 		fingerprintHandler, exists := registry.GetHandler(common.CheckFingerprint)
 		assert.True(t, exists)
 		assert.IsType(t, &CheckFingerprintHandler{}, fingerprintHandler)
+
+		controlContainerHandler, exists := registry.GetHandler(common.ControlContainer)
+		assert.True(t, exists)
+		assert.IsType(t, &ControlContainerHandler{}, controlContainerHandler)
 	})
 
 	t.Run("custom handler registration", func(t *testing.T) {
@@ -87,6 +91,13 @@ func TestHandlerRegistry(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "hub not verified")
 	})
+}
+
+func TestControlContainerHandlerRegistered(t *testing.T) {
+	registry := NewHandlerRegistry()
+	handler, exists := registry.GetHandler(common.ControlContainer)
+	assert.True(t, exists)
+	assert.IsType(t, &ControlContainerHandler{}, handler)
 }
 
 // TestCheckFingerprintHandler tests the CheckFingerprint handler

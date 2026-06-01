@@ -54,6 +54,15 @@ type hubLike interface {
 	GetSSHKey(dataDir string) (ssh.Signer, error)
 	HandleSystemAlerts(systemRecord *core.Record, data *system.CombinedData) error
 	HandleStatusAlerts(status string, systemRecord *core.Record) error
+	EvaluateGPUBlackroom()
+}
+
+// GPUBlackroomSystemData is the minimal system snapshot needed by the Hub GPU quota enforcer.
+type GPUBlackroomSystemData struct {
+	SystemID   string
+	SystemName string
+	Data       *system.CombinedData
+	Control    func(containerID string, operation string) error
 }
 
 // NewSystemManager creates a new SystemManager instance with the provided hub.
@@ -73,6 +82,32 @@ func (sm *SystemManager) GetSystem(systemID string) (*System, error) {
 		return nil, fmt.Errorf("system not found")
 	}
 	return sys, nil
+}
+
+// GPUBlackroomSystemData returns a snapshot of active system data for Hub-side GPU quota enforcement.
+func (sm *SystemManager) GPUBlackroomSystemData() map[string]*GPUBlackroomSystemData {
+	result := make(map[string]*GPUBlackroomSystemData)
+	for systemID, sys := range sm.systems.GetAll() {
+		if sys == nil || sys.Status != up || sys.data == nil {
+			continue
+		}
+		systemRecord, err := sm.hub.FindRecordById("systems", systemID)
+		systemName := systemID
+		if err == nil && systemRecord != nil {
+			systemName = systemRecord.GetString("name")
+		}
+		systemRef := sys
+		result[systemID] = &GPUBlackroomSystemData{
+			SystemID:   systemID,
+			SystemName: systemName,
+			Data:       sys.data,
+			Control: func(containerID string, operation string) error {
+				_, err := systemRef.ControlContainerFromAgent(containerID, operation)
+				return err
+			},
+		}
+	}
+	return result
 }
 
 // Initialize sets up the system manager by binding event hooks and starting existing systems.

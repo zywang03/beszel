@@ -28,14 +28,15 @@ import (
 type Hub struct {
 	core.App
 	*alerts.AlertManager
-	um     *users.UserManager
-	rm     *records.RecordManager
-	sm     *systems.SystemManager
-	hb     *heartbeat.Heartbeat
-	hbStop chan struct{}
-	pubKey string
-	signer ssh.Signer
-	appURL string
+	um           *users.UserManager
+	rm           *records.RecordManager
+	sm           *systems.SystemManager
+	hb           *heartbeat.Heartbeat
+	gpuBlackroom *gpuBlackroomManager
+	hbStop       chan struct{}
+	pubKey       string
+	signer       ssh.Signer
+	appURL       string
 }
 
 var containerIDPattern = regexp.MustCompile(`^[a-fA-F0-9]{12,64}$`)
@@ -48,6 +49,7 @@ func NewHub(app core.App) *Hub {
 	hub.rm = records.NewRecordManager(hub)
 	hub.sm = systems.NewSystemManager(hub)
 	hub.hb = heartbeat.New(app, GetEnv)
+	hub.gpuBlackroom = newGPUBlackroomManager(hub, loadGPUBlackroomConfigFromEnv())
 	if hub.hb != nil {
 		hub.hbStop = make(chan struct{})
 	}
@@ -108,6 +110,9 @@ func (h *Hub) StartHub() error {
 		if err := h.sm.Initialize(); err != nil {
 			return err
 		}
+		if h.gpuBlackroom != nil {
+			h.gpuBlackroom.Start()
+		}
 		// start heartbeat if configured
 		if h.hb != nil {
 			go h.hb.Start(h.hbStop)
@@ -143,6 +148,14 @@ func (h *Hub) initialize(app core.App) error {
 	}
 	// set auth settings
 	return setCollectionAuthSettings(app)
+}
+
+// EvaluateGPUBlackroom evaluates configured cross-server GPU quotas after fresh system data arrives.
+func (h *Hub) EvaluateGPUBlackroom() {
+	if h.gpuBlackroom == nil {
+		return
+	}
+	h.gpuBlackroom.Evaluate()
 }
 
 // registerCronJobs sets up scheduled tasks
